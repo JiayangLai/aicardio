@@ -15,6 +15,7 @@ from tqdm import tqdm
 from net_lib.classifation_end import CLS_end
 from net_lib.model_builder import model_builder_classification
 from utils.check_mkdir import chk_mk_model
+from utils.saved_path_gen import savedpathgen
 
 
 def train_and_valid(model, loss_function, optimizer, net_in, epochs, train_data_size, valid_data_size):
@@ -35,6 +36,7 @@ def train_and_valid(model, loss_function, optimizer, net_in, epochs, train_data_
         valid_acc = 0.0
 
         for i, (inputs, labels) in tqdm(enumerate(train_data)):
+            # print(labels)
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -66,6 +68,7 @@ def train_and_valid(model, loss_function, optimizer, net_in, epochs, train_data_
                 labels = labels.to(device)
 
                 outputs = model(inputs)
+                # print(outputs)
 
                 loss = loss_function(outputs, labels)
 
@@ -93,14 +96,14 @@ def train_and_valid(model, loss_function, optimizer, net_in, epochs, train_data_
         epoch_end = time.time()
 
         print(
-            "Epoch: {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}%, \n\t\tValidation: Loss: {:.4f}, Accuracy: {:.4f}%, Time: {:.4f}s".format(
-                epoch + 1, avg_valid_loss, avg_train_acc * 100, avg_valid_loss, avg_valid_acc * 100,
+            "Epoch: {:03d}, Training: Loss: {:.5f}, Accuracy: {:.4f}%, \n\t\tValidation: Loss: {:.5f}, Accuracy: {:.4f}%, Time: {:.4f}s".format(
+                epoch + 1, avg_train_loss, avg_train_acc * 100, avg_valid_loss, avg_valid_acc * 100,
                 epoch_end - epoch_start
             ))
-        print("Best Accuracy for validation : {:.4f} at epoch {:03d}".format(best_acc, best_epoch))
+        print("Best Accuracy for validation : {:.5f} at epoch {:03d}".format(best_acc, best_epoch))
 
-        torch.save(model, 'models_saved/' + net_in + '/TL{:.4f}_TA{:.1f}_VL{:.4f}_VA{:.1f}_EP'.format(
-            avg_valid_loss, avg_train_acc * 100, avg_valid_loss, avg_valid_acc * 100
+        torch.save(model, 'models_saved/' + net_in + '/TL{:.7f}_TA{:.1f}_VL{:.7f}_VA{:.1f}_EP'.format(
+            avg_train_loss, avg_train_acc * 100, avg_valid_loss, avg_valid_acc * 100
         ) + str(epoch + 1) + '.pt')
     return model, history
 
@@ -145,8 +148,11 @@ val_size = len(dataset['valid'])
 train_data = DataLoader(dataset['train'], batch_size=batch_size, shuffle=True)
 valid_data = DataLoader(dataset['valid'], batch_size=batch_size, shuffle=True)
 
-net_name = 'resnet18_2332'
-model_now = model_builder_classification(net_name, num_classes)
+net_name = 'resnet18'
+pretrained = True
+model_now = model_builder_classification(net_name, num_classes, pretrained)
+
+model_saved_path = savedpathgen(pretrained,net_name)
 
 model_now = model_now.to('cuda:0')
 
@@ -155,9 +161,9 @@ optimizer = optim.Adam(model_now.parameters())
 
 num_epochs = 50
 
-chk_mk_model(net_name)
-trained_model, history = train_and_valid(model_now, loss_func, optimizer, net_name, num_epochs, trn_size, val_size)
-torch.save(history, './models_saved/' + net_name + '/history.pt')
+chk_mk_model(model_saved_path)
+trained_model, history = train_and_valid(model_now, loss_func, optimizer, model_saved_path, num_epochs, trn_size, val_size)
+torch.save(history, './models_saved/' + model_saved_path + '/history.pt')
 
 history = np.array(history)
 plt.plot(history[:, 0:2])
