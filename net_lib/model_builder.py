@@ -6,7 +6,7 @@ from net_lib.classifation_end import CLS_end
 
 
 def isintorchvision(netname_in):
-    return netname_in in ['resnet18','resnet50','resnet152']
+    return netname_in in ['resnet18','resnet50','resnet152','resnext101_32x8d','resnext50_32x4d']
 
 def isinmodifiedmodels(netname_in):
     return netname_in in ['resnet18_2332']

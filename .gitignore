@@ -2,6 +2,7 @@
 *.jpg
 *.pt
 *.zip
+*.xml
 mima.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
